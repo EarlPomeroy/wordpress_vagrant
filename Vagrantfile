@@ -13,7 +13,7 @@ Vagrant.configure("2") do |config|
   config.vm.boot_timeout = 3000
 
   config.vm.provision "ansible" do |ansible|
-    ansible.verbose = "v"
+    # ansible.verbose = "v"
     ansible.playbook = "playbook.yml"
   end
 end

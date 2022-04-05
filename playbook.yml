@@ -3,8 +3,12 @@
   become: true
   vars:
     # Change one, change the other :)
-    WORDPRESS_VERSION: 5.9.1
-    WORDPRESS_CHECKSUM: 15746f848cd388e270bae612dccd0c83fa613259
+    wordpress_version: 5.9.1
+    wordpress_checksum: 15746f848cd388e270bae612dccd0c83fa613259
+    mariadb_root_password: password
+    wp_database: wordpressdb
+    mariadb_wp_user: wordpressuser
+    mariadb_wp_password: password
   tasks:
     - name: Update APT cache
       apt:
@@ -16,8 +20,12 @@
         pkg:
           - vim
           - php
+          - php-fpm
+          - php-mysql
           - nginx
           - mariadb-server
+          - mariadb-client
+          - python3-pymysql
 
     - name: Update all packages to the latest version
       apt:
@@ -44,23 +52,11 @@
         autoclean: true
         autoremove: true
 
-    - name: Start nginx
-      systemd:
-        name: nginx
-        enabled: true
-        state: started
-
-    - name: Start nginx
-      systemd:
-        name: mariadb
-        enabled: true
-        state: started
-
     - name: Download WordPress
       get_url:
-        url: https://wordpress.org/wordpress-{{ WORDPRESS_VERSION }}.tar.gz
-        checksum: sha1:{{ WORDPRESS_CHECKSUM }}
-        dest: /home/vagrant/wordpress-{{ WORDPRESS_VERSION }}.tar.gz
+        url: https://wordpress.org/wordpress-{{ wordpress_version }}.tar.gz
+        checksum: sha1:{{ wordpress_checksum }}
+        dest: /home/vagrant/wordpress-{{ wordpress_version }}.tar.gz
         owner: vagrant
         group: vagrant
 
@@ -68,12 +64,20 @@
       become: true
       become_user: vagrant
       unarchive:
-        src: /home/vagrant/wordpress-{{ WORDPRESS_VERSION }}.tar.gz
+        src: /home/vagrant/wordpress-{{ wordpress_version }}.tar.gz
         dest: /home/vagrant
         remote_src: true
         creates: /home/vagrant/wordpress/license.txt
         owner: vagrant
         group: vagrant
+
+    - name: Configure WordPress
+      template:
+        src: templates/wp-config.php.j2
+        dest: /home/vagrant/wordpress/wp-config.php
+        owner: vagrant
+        group: vagrant
+        mode: "0644"
 
     - name: Link Nginx wp to vagrant wordpress
       file:
@@ -83,32 +87,5 @@
         group: root
         state: link
 
-    - name: Copy default Nginx config
-      copy:
-        src: files/default
-        dest: /etc/nginx/sites-available/default
-        owner: root
-        group: root
-        mode: 0644
-
-    - name: Copy wordpress Nginx config
-      copy:
-        src: files/wordpress
-        dest: /etc/nginx/sites-available/wordpress
-        owner: root
-        group: root
-        mode: 0644
-
-    - name: Link wordpress in sites-enabled
-      file:
-        src: /etc/nginx/sites-available/wordpress
-        dest: /etc/nginx/sites-enabled/wordpress
-        remote_src: true
-        owner: root
-        group: root
-        state: link
-
-    - name: restart nginx
-      systemd:
-        name: nginx
-        state: restarted
+    - include_tasks: nginx.yml
+    - include_tasks: mariadb.yml

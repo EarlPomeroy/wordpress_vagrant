@@ -7,7 +7,7 @@ server {
         root /var/www/wp;
 
         # Add index.php to the list if you are using PHP
-        index index.html index.htm index.nginx-debian.html;
+        index index.php index.html index.htm index.nginx-debian.html;
 
         server_name _;
 
@@ -18,9 +18,7 @@ server {
         }
 
         location ~ \.php$ {
-                fastcgi_split_path_info ^(.+\.php)(/.+)$;
-                fastcgi_pass 127.0.0.1:9000;
-                fastcgi_index index.php;
-                include fastcgi_params;
+                include snippets/fastcgi-php.conf;
+                fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
         }
 }

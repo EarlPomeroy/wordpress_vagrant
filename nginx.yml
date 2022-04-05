@@ -1,0 +1,36 @@
+---
+- name: Start Nginx
+  systemd:
+    name: nginx
+    enabled: true
+    state: started
+
+- name: Copy default Nginx config
+  copy:
+    src: files/default
+    dest: /etc/nginx/sites-available/default
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy wordpress Nginx config
+  copy:
+    src: files/wordpress
+    dest: /etc/nginx/sites-available/wordpress
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Link wordpress in sites-enabled
+  file:
+    src: /etc/nginx/sites-available/wordpress
+    dest: /etc/nginx/sites-enabled/wordpress
+    remote_src: true
+    owner: root
+    group: root
+    state: link
+
+- name: restart nginx
+  systemd:
+    name: nginx
+    state: restarted

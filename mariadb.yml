@@ -1,0 +1,43 @@
+---
+- name: Start Mariadb
+  systemd:
+    name: mariadb
+    enabled: true
+
+- name: Set host root password for Mariadb
+  mysql_user:
+    check_implicit_admin: true
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    user: root
+    password: "{{ mariadb_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    host: localhost
+
+- name: remove remote root for Mariadb
+  mysql_user:
+    check_implicit_admin: true
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    user: root
+    host: "{{ ansible_fqdn }}"
+    state: absent
+
+- name: "Create a new database with name {{ wp_database }}"
+  mysql_db:
+    name: "{{ wp_database }}"
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    state: present
+
+- name: "Create user {{ mariadb_wp_user }}"
+  mysql_user:
+    name: "{{ mariadb_wp_user }}"
+    password: "{{ mariadb_wp_password }}"
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    host: localhost
+    state: present
+    update_password: on_create
+    priv: "{{ wp_database }}.*:ALL"
