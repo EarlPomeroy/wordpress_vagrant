@@ -4,7 +4,7 @@ server {
         listen 5000 default_server;
         listen [::]:5000 default_server;
 
-        root /var/www/wp;
+        root /var/www/wordpress;
 
         # Add index.php to the list if you are using PHP
         index index.php index.html index.htm index.nginx-debian.html;

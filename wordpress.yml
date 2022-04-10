@@ -1,0 +1,25 @@
+---
+- name: Download WordPress
+  get_url:
+    url: https://wordpress.org/wordpress-{{ wordpress_version }}.tar.gz
+    checksum: sha1:{{ wordpress_checksum }}
+    dest: /home/vagrant/wordpress-{{ wordpress_version }}.tar.gz
+    owner: vagrant
+    group: vagrant
+
+- name: Extract WordPress
+  unarchive:
+    src: /home/vagrant/wordpress-{{ wordpress_version }}.tar.gz
+    dest: /var/www
+    remote_src: true
+    creates: /var/www/wordpress/license.txt
+    owner: www-data
+    group: www-data
+
+- name: Configure WordPress
+  template:
+    src: templates/wp-config.php.j2
+    dest: /var/www/wordpress/wp-config.php
+    owner: www-data
+    group: www-data
+    mode: "0644"

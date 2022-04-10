@@ -52,40 +52,6 @@
         autoclean: true
         autoremove: true
 
-    - name: Download WordPress
-      get_url:
-        url: https://wordpress.org/wordpress-{{ wordpress_version }}.tar.gz
-        checksum: sha1:{{ wordpress_checksum }}
-        dest: /home/vagrant/wordpress-{{ wordpress_version }}.tar.gz
-        owner: vagrant
-        group: vagrant
-
-    - name: Extract WordPress
-      become: true
-      become_user: vagrant
-      unarchive:
-        src: /home/vagrant/wordpress-{{ wordpress_version }}.tar.gz
-        dest: /home/vagrant
-        remote_src: true
-        creates: /home/vagrant/wordpress/license.txt
-        owner: vagrant
-        group: vagrant
-
-    - name: Configure WordPress
-      template:
-        src: templates/wp-config.php.j2
-        dest: /home/vagrant/wordpress/wp-config.php
-        owner: vagrant
-        group: vagrant
-        mode: "0644"
-
-    - name: Link Nginx wp to vagrant wordpress
-      file:
-        src: /home/vagrant/wordpress
-        dest: /var/www/wp
-        owner: root
-        group: root
-        state: link
-
+    - include_tasks: wordpress.yml
     - include_tasks: nginx.yml
     - include_tasks: mariadb.yml
